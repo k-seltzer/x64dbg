@@ -295,6 +295,10 @@ static void AddDBFileTypeIcon(TCHAR* sz32Path, TCHAR* sz64Path)
 static TCHAR szApplicationDir[MAX_PATH] = TEXT("");
 static TCHAR szCurrentDir[MAX_PATH] = TEXT("");
 static TCHAR sz32Path[MAX_PATH] = TEXT("");
+static TCHAR sz32ePath[MAX_PATH] = TEXT("");
+static TCHAR sz32eDir[MAX_PATH] = TEXT("");
+static TCHAR sz64ePath[MAX_PATH] = TEXT("");
+static TCHAR sz64eDir[MAX_PATH] = TEXT("");
 static TCHAR sz32Dir[MAX_PATH] = TEXT("");
 static TCHAR sz64Path[MAX_PATH] = TEXT("");
 static TCHAR sz64Dir[MAX_PATH] = TEXT("");
@@ -458,6 +462,8 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     {
         _tcscpy_s(sz32Path, szCurrentDir);
         PathAppend(sz32Path, TEXT("x32\\x32dbg.exe"));
+        _tcscpy_s(sz32ePath, szCurrentDir);
+        PathAppend(sz32ePath, TEXT("x32\\x32edbg.exe"));
         if(FileExists(sz32Path))
         {
             WritePrivateProfileString(TEXT("Launcher"), TEXT("x32dbg"), TEXT("x32\\x32dbg.exe"), szIniPath);
@@ -472,16 +478,23 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
             PathAppend(sz32Path, szTempPath);
         }
         else
+        {
             _tcscpy_s(sz32Path, szTempPath);
+        }
     }
-
+    _tcscpy_s(sz32ePath, szCurrentDir);
+    PathAppend(sz32ePath, TEXT("x32\\x32edbg.exe"));
     _tcscpy_s(sz32Dir, sz32Path);
     PathRemoveFileSpec(sz32Dir);
+    _tcscpy_s(sz32eDir, sz32ePath);
+    PathRemoveFileSpec(sz32eDir);
 
     if(!GetPrivateProfileString(TEXT("Launcher"), TEXT("x64dbg"), TEXT(""), szTempPath, MAX_PATH, szIniPath))
     {
         _tcscpy_s(sz64Path, szCurrentDir);
         PathAppend(sz64Path, TEXT("x64\\x64dbg.exe"));
+        _tcscpy_s(sz64ePath, szCurrentDir);
+        PathAppend(sz64ePath, TEXT("x64\\x64edbg.exe"));
         if(FileExists(sz64Path))
         {
             WritePrivateProfileString(TEXT("Launcher"), TEXT("x64dbg"), TEXT("x64\\x64dbg.exe"), szIniPath);
@@ -496,11 +509,16 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
             PathAppend(sz64Path, szTempPath);
         }
         else
+        {
             _tcscpy_s(sz64Path, szTempPath);
+        }
     }
-
+    _tcscpy_s(sz64ePath, szCurrentDir);
+    PathAppend(sz64ePath, TEXT("x64\\x64edbg.exe"));
     _tcscpy_s(sz64Dir, sz64Path);
     PathRemoveFileSpec(sz64Dir);
+    _tcscpy_s(sz64eDir, sz64ePath);
+    PathRemoveFileSpec(sz64eDir);
 
     //Functions to load the relevant debugger with a command line
     auto load32 = [](const wchar_t* cmdLine)
@@ -594,11 +612,22 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
                 AddShellIcon(SHELLEXT_ICON_DLL_KEY, szIconCommand, LoadResString(IDS_SHELLEXTDBG));
             bDoneSomething = true;
         }
-        if(MessageBox(nullptr, LoadResString(IDS_ASKDESKTOPSHORTCUT), LoadResString(IDS_QUESTION), MB_YESNO | MB_ICONQUESTION) == IDYES)
+        if(MessageBox(nullptr, LoadResString(IDS_ASKELEVATEDSHORTCUT), LoadResString(IDS_QUESTION), MB_YESNO | MB_ICONQUESTION) == IDYES)
+        {
+            AddDesktopShortcut(sz32ePath, TEXT("x32dbg"));
+            if(isWoW64())
+            {
+                AddDesktopShortcut(sz64ePath, TEXT("x64dbg"));
+            }
+            bDoneSomething = true;
+        }
+        else if(MessageBox(nullptr, LoadResString(IDS_ASKDESKTOPSHORTCUT), LoadResString(IDS_QUESTION), MB_YESNO | MB_ICONQUESTION) == IDYES)
         {
             AddDesktopShortcut(sz32Path, TEXT("x32dbg"));
             if(isWoW64())
+            {
                 AddDesktopShortcut(sz64Path, TEXT("x64dbg"));
+            }
             bDoneSomething = true;
         }
 
